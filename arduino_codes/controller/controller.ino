@@ -3,10 +3,10 @@
 
 #define CS 53
 
-float setpoint = 29;
+float setpoint = 33;
 float error = 0;
 float P = 0, I = 0, D = 0;
-float kp = 1.0, ki = 0.3, kd = 0.1;
+float kp = -4.0, ki = -0.1, kd = 0.08;
 //float kp = 1.0, ki = 0.5, kd = 0.05;
 float PID = 0;
 int pwm_control = 0;
@@ -99,7 +99,7 @@ void loop() {
 
   PID = P + I + D;
   
-  pwm_control = (PID + 5);
+  pwm_control = (PID + 10);
 
   if (pwm_control < 0 ){
     pwm_control = 0;  

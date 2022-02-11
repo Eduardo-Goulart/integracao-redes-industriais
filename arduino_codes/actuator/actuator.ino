@@ -33,7 +33,6 @@ union cvt {
 void read_controller_msg(){
       
   if (mcp2515.readMessage(&can_actuator) == MCP2515::ERROR_OK){
-    Serial.println("Message in can");
     if (can_actuator.can_id == 0x035){
       //for(int i = 0; i < 2; i++){
        // as_bytes.bval[i] = can_actuator.data[i];
@@ -42,6 +41,7 @@ void read_controller_msg(){
       //int signal_control = as_bytes.ival;
       int signal_control = can_actuator.data[0];
 
+      analogWrite(FAN_PIN, signal_control);
       Serial.println("****************");
       Serial.print("Received message from CAN ID: ");
       Serial.println(can_actuator.can_id, HEX);      
