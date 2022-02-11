@@ -19,7 +19,7 @@ MCP2515 mcp2515(CS);
 
 void setup() {
   
-  Serial.begin(9600);
+  Serial.begin(115200);
   SPI.begin();
 
   mcp2515.reset();
@@ -32,16 +32,25 @@ void setup() {
   Serial.println();
   
   canMsg.can_id = 0x035;
-  canMsg.can_dlc = 1;
+  canMsg.can_dlc = 2;
 }
 
+
+union cvt {
+    float ival;
+    byte bval[4];
+} as_bytes;
 
 float read_sensor_msg(){
       
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK){
     if (canMsg.can_id == 0x036){
-      
-      float temperature = canMsg.data[0];
+      for(int i = 0; i < 4; i++){
+        as_bytes.bval[i] = canMsg.data[i];
+      }
+
+      float temperature = as_bytes.ival;
+      //float temperature = canMsg.data[0];
 
       Serial.println("****************");
       Serial.print("Received message from CAN ID: ");
@@ -57,9 +66,17 @@ float read_sensor_msg(){
   }
 }
 
+// utilizar union para transmitir os 4 bytes do sensor
 void transmit_control_signal(float pwm){
-
+  
+   canMsg.can_id = 0x035;
    canMsg.data[0] = pwm;
+   Serial.print("Controller sending: ");
+   Serial.println(pwm);
+   Serial.print("Can id: ");
+   Serial.println(canMsg.can_id, HEX);
+   Serial.println(canMsg.data[0]);
+   Serial.println("*******************");
    mcp2515.sendMessage(&canMsg);
 
 }
@@ -102,12 +119,10 @@ void loop() {
   Serial.println(PID);
   Serial.print("Control signal: ");
   Serial.println(pwm_control);
-  Serial.println("****************");
+  Serial.println("----------------");
       
   last_temperature = temperature; 
   //
-  
-
   transmit_control_signal(pwm_control);
   
   delay(2000);
