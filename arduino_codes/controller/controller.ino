@@ -80,9 +80,9 @@ void transmit_control_signal(float pwm){
 
 int verify_sensor(){
   
-  for(int i = 0; i < 100; i++){
+  for(int i = 0; i < 50; i++){
     if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK){
-      if (canMsg.can_id == 0x002){
+      if (canMsg.can_id == 0x001){
         return 1;       
       }
     }
