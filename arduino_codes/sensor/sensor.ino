@@ -22,7 +22,6 @@ void setup() {
   
 }
 
-
 float read_temperature(){
   
   float raw_temp = float(analogRead(TEMP_PIN));
@@ -38,6 +37,9 @@ void send_data(float temperature){
     float ival;
     byte bval[4];
   } as_bytes;
+  
+  can_sensor.can_id = 0x036;
+  can_sensor.can_dlc = 4;
   
   as_bytes.ival = temperature;
   for(int i = 0; i < 4; i++){
@@ -55,6 +57,29 @@ void send_data(float temperature){
 
 }
 
+int verify_controller(){
+  for(int i = 0; i < 50; i++){
+    if (mcp2515.readMessage(&can_sensor) == MCP2515::ERROR_OK){
+      if (can_sensor.can_id == 0x003){
+        return 1;       
+      }
+    }
+    
+    delay(250);
+  }
+
+  return 0;
+}
+
+void keep_alive(){
+  can_sensor.can_id = 0x001;
+  can_sensor.can_dlc = 1;
+  
+  can_sensor.data[0] = 1;
+
+  mcp2515.sendMessage(&can_sensor);
+}
+
 void loop() {
 
   float temperature = read_temperature();
@@ -64,6 +89,14 @@ void loop() {
 
   send_data(temperature);
 
-  delay(2000);
+  keep_alive();
+
+  //int status_controller = verify_controller();
+
+  //if (status_controller == 0){
+  //  Serial.println("Controller OFF!");
+  //}
+  
+  delay(500);
 
 }

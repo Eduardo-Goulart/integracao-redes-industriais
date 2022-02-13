@@ -18,10 +18,16 @@ void setup() {
   
   pinMode(FAN_PIN, OUTPUT);
   analogWrite(FAN_PIN, pwm_signal);
-
+  
+  mcp2515.reset();
+  mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);
+  mcp2515.setNormalMode();
+  
   can_actuator.can_id = 0x033;
   can_actuator.can_dlc = 1;
-  
+
+  Serial.println("CAN Configurated...");
+  Serial.println("********************");
 }
 
 union cvt {
@@ -33,26 +39,38 @@ union cvt {
 void read_controller_msg(){
       
   if (mcp2515.readMessage(&can_actuator) == MCP2515::ERROR_OK){
+    Serial.println("...");
     if (can_actuator.can_id == 0x035){
-      //for(int i = 0; i < 2; i++){
-       // as_bytes.bval[i] = can_actuator.data[i];
-      //}
-
-      //int signal_control = as_bytes.ival;
       int signal_control = can_actuator.data[0];
 
       analogWrite(FAN_PIN, signal_control);
       Serial.println("****************");
       Serial.print("Received message from CAN ID: ");
+      Serial.print("Control signal: ");
+      Serial.println(signal_control);
+      Serial.print("From CAN id: ");
       Serial.println(can_actuator.can_id, HEX);      
+      Serial.print("Frame size: ");
+      Serial.println(can_actuator.can_dlc, HEX);      
     }  
   }
+}
+
+void keep_alive(){
+  can_actuator.can_id = 0x002;
+  can_actuator.can_dlc = 1;
+  
+  can_actuator.data[0] = 1;
+
+  mcp2515.sendMessage(&can_actuator);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
   read_controller_msg();
-
-  delay(2000);
+  
+  keep_alive();
+  
+  delay(500);
 }
