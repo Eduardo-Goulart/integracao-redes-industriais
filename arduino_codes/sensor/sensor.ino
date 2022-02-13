@@ -90,12 +90,6 @@ void loop() {
   send_data(temperature);
 
   keep_alive();
-
-  //int status_controller = verify_controller();
-
-  //if (status_controller == 0){
-  //  Serial.println("Controller OFF!");
-  //}
   
   delay(500);
 
